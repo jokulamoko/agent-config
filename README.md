@@ -1,6 +1,6 @@
 # agent-config
 
-Portable Claude Code configuration, synced across devices. Cloned into `~/.claude`.
+Portable Agent harness configuration, synced across devices. Cloned into `~/.claude`.
 
 Only the config is tracked — `.gitignore` denies everything and allow-lists back in. Runtime
 state (sessions, history, caches, projects) stays local.
