@@ -69,7 +69,8 @@ Note that sometimes you may depend on local packages outside of the repo you're 
 
 5. From the investigation, develop an implementation plan — the approach, the files it
    touches, the order of work, and the boundary cases it must hold.
-6. Run `/reflect` on the plan: it spawns an unbiased read-only review of the plan against
+6. **Invoke the `reflect` skill via the Skill tool** (not a hand-rolled reviewer — see the
+   note below) on the plan: it spawns an unbiased read-only review of the plan against
    the original intent, then triages the findings. Fold what survives back into the plan
    before writing any code — catching a wrong approach here is far cheaper than catching it
    after implementation.
