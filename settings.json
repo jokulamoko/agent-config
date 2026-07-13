@@ -44,6 +44,8 @@
       "Bash(set -a)",
       "Bash(set +a)",
       "Bash(git:*)",
+      "Bash(~/.claude/skills/leaf/leaf-setup.sh:*)",
+      "EnterWorktree",
       "WebSearch",
       "WebFetch(*)",
       "Read(**)"
