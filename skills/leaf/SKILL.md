@@ -79,9 +79,17 @@ Note that sometimes you may depend on local packages outside of the repo you're 
 
 7. Make codebase changes to resolve the issue or add the feature.
 8. Test the fix or feature comprehensively. Question thoroughly if it has been implemented correctly. Consider boundary cases.
-9. Run `/contact` to audit how much contact with reality the work has actually had — concrete execution against real data, end-to-end runs, observed logs/metrics — versus what's still only theoretical. Action any cheap, reversible next touches to de-risk the work before it reaches the user.
-10. Run `/vocab` to curate `.library/VOCAB.md` against the work just done — capture any new domain terms the implementation coined, reconcile any usage that drifted from an existing definition, and settle fuzzy or overloaded words.
-11. Run `/reflect` — the pre-user-input review: it spawns an unbiased read-only review of the work against the original intent, then triages the findings and actions what survives. 
+9. **Invoke the `contact` skill via the Skill tool** to audit how much contact with reality the work has actually had — concrete execution against real data, end-to-end runs, observed logs/metrics — versus what's still only theoretical. Action any cheap, reversible next touches to de-risk the work before it reaches the user.
+10. **Invoke the `vocab` skill via the Skill tool** to curate `.library/VOCAB.md` against the work just done — capture any new domain terms the implementation coined, reconcile any usage that drifted from an existing definition, and settle fuzzy or overloaded words.
+11. **Invoke the `reflect` skill via the Skill tool** — the pre-user-input review: it spawns an unbiased read-only review of the work against the original intent, then triages the findings and actions what survives.
+
+> **Steps 6, 9, 10 and 11 mean the Skill tool — not your own approximation of them.**
+> Each of these skills carries a method you cannot reconstruct from its name. `reflect` is the
+> one that bites: its default judge is a **different engine** (headless `opencode`, via
+> `reflect/eval.sh`), because a same-model sub-agent shares your blind spots — which is the
+> entire reason the step exists. Spawning a same-model reviewer with the Agent tool looks like
+> reflecting and isn't. If a step names a skill, load the skill.
+
 12. After actioning the contact, vocab, and reflection findings, write a self-criticism of the work:
    - Code form and structure (are the patterns clean, maintainable and efficient?)
    - Solution — is it a patch, or a direct, comprehensive fix?
