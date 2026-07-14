@@ -1,22 +1,9 @@
 #!/usr/bin/env bash
-# reflect eval — run a fresh reviewer on an INDEPENDENT engine, headless, and
-# print its review to stdout for the caller to proxy.
+# reflect eval — run a fresh reviewer on an INDEPENDENT engine, headless, and print its review to
+# stdout for the caller to proxy. /reflect uses it for a judge of genuinely different weights.
 #
-# This is the inverse of detach.sh: detach opens an interactive tab and hands off
-# to a human; eval runs headless and captures the output back into the calling
-# session. /reflect uses it when it wants a judge that is genuinely different
-# weights from the model that did the work — not a same-model sub-agent.
-#
-# Read-only is structural for the file-editing tools: opencode's `edit` permission
-# gates write/edit/patch (all check it — there is no separate key), so
-# `permission.edit=deny` blocks them outright. It is NOT a hermetic sandbox — bash
-# stays open (the reviewer must run `git diff` and any verification), so a mandate,
-# not a cage, holds bash read-only. This is the same posture as /reflect's
-# Explore/general-purpose sub-agents, which also carry Bash and honour the mandate.
-#
-# Engine-agnostic by seam, not by speculation: only `opencode` is implemented
-# (the Claude path is already covered by /reflect's Agent-tool sub-agent). Adding
-# an engine is a new case branch.
+# Permissions come from ./reviewer-permissions.sh. Not a sandbox: bash stays open (the reviewer must
+# run git diff and verification), so a mandate, not a cage, holds it read-only.
 #
 # Created 2026-07-08. Companion: ./SKILL.md
 set -euo pipefail
@@ -49,10 +36,43 @@ run_eval() {
   case "$engine" in
     opencode)
       command -v opencode >/dev/null || die "opencode not on PATH"
-      # Merge a read-only override onto the user's own opencode config (provider,
-      # model, everything else survive); edit:deny is the enforced invariant.
-      OPENCODE_CONFIG_CONTENT='{"$schema":"https://opencode.ai/config.json","permission":{"edit":"deny"}}' \
-        opencode run "$prompt" --dir "$cwd" ${model:+--model "$model"}
+      # OPENCODE_CONFIG_CONTENT merges onto the user's own opencode config, so the provider and
+      # model — the whole point of a different-weights judge — survive.
+      local permissions out rc
+      permissions="$(bash "$(dirname "${BASH_SOURCE[0]}")/reviewer-permissions.sh")" \
+        || die "could not derive reviewer permissions — refusing to run unconstrained"
+      out="$(mktemp "${TMPDIR:-/tmp}/reflect-eval.XXXXXX")"
+      # Suspended, or a non-zero opencode exit aborts the script before rc is captured, before the
+      # guards below run, and before $out is cleaned up.
+      set +e
+      OPENCODE_CONFIG_CONTENT="$permissions" \
+        opencode run "$prompt" --dir "$cwd" ${model:+--model "$model"} 2>&1 | tee "$out"
+      rc=${PIPESTATUS[0]}
+      set -e
+
+      # opencode exits 0 even when the review never happened, so silence would reach the user as
+      # "no findings" — an unobserved reflection laundering "I never ran" into "I found nothing".
+      [ -s "$out" ] || { rm -f "$out"; die "the reviewer produced no output — the review did not run."; }
+
+      # A denial is survivable, not fatal (measured: a denied reviewer completes the rest of its
+      # brief), so warn and keep the review rather than binning it over an idle peek. Both denial
+      # shapes must be matched — an auto-rejected built-in `ask`, and one of our own deny rules.
+      # The extracted name must start with a letter: a reviewer of THIS repo reads this script, and
+      # a looser pattern matched the grep expression below, quoted back in its own transcript.
+      if grep -qE "auto-rejecting|rule which prevents you" "$out"; then
+        {
+          echo "reflect-eval: WARNING — the reviewer was DENIED at least one tool call, so the review may be PARTIAL."
+          grep -o "permission requested: [a-z_][^;]*" "$out" | sort -u | sed 's/^/  denied: /'
+          echo "  If a denied path is a tracked file the reviewer must see, add it via --allow-read above."
+        } >&2
+        # opencode folds a rejected tool call into a non-zero exit (a clean run exits 0, one denial
+        # exits 1). Propagating that would have a caller bin a complete review over an idle peek at
+        # a denied path. The warning above already says so. A crash with no denial still returns rc.
+        rm -f "$out"
+        return 0
+      fi
+      rm -f "$out"
+      return "$rc"
       ;;
     *) die "unsupported engine '$engine' (implemented: opencode)";;
   esac

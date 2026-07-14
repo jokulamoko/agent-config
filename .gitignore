@@ -11,6 +11,9 @@
 !skills/
 !skills/**
 
+!bin/
+!bin/**
+
 node_modules
 
 skills/console/accents.json
