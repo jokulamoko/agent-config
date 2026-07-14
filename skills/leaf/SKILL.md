@@ -39,8 +39,16 @@ over. But it shouldn't be always triggered; only run it when I ask for it.
    It infers the base from where you are — local `main` in the main repo, the current branch's
    `HEAD` inside a worktree — places the worktree flat under `<main_root>/.worktrees/<task-slug>`,
    copies `.env` in, and syncs the uv workspace if the project has a `uv.lock`. It prints the
-   worktree path on stdout and fails closed if that path or branch already exists. Switch your
-   session into the printed path (Claude Code: `EnterWorktree` with that `path`).
+   worktree path on stdout and fails closed if that path or branch already exists.
+
+   Then switch your session into it — Claude Code: `EnterWorktree` with **`name`** set to
+   `<prefix>/<task-slug>` and **no `path`**. The `WorktreeCreate` hook resolves the worktree the
+   script just made and Claude Code enters it.
+
+   Pass `name`, never `path`. They reach the same worktree, but a model-supplied `path` outside
+   `.claude/worktrees/` relocates the permission root and so raises an approval prompt every
+   single time; `name` goes through the hook and raises none.
+
 3. **Give the worktree its own database, if the project has per-branch databases.** How that is
    done is the project's business, not this skill's — check the repo for guidance. Drive the
    project's own audited command; never the database provider's CLI by hand. If the project

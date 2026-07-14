@@ -62,6 +62,20 @@
     "ask": [],
     "defaultMode": "auto"
   },
+  "hooks": {
+    "WorktreeCreate": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.claude/skills/leaf/worktree-create-hook.sh\"",
+            "timeout": 300,
+            "statusMessage": "Creating leaf worktree"
+          }
+        ]
+      }
+    ]
+  },
   "model": "opus[1m]",
   "alwaysThinkingEnabled": true,
   "skipDangerousModePermissionPrompt": true,
