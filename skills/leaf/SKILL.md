@@ -93,10 +93,10 @@ Note that sometimes you may depend on local packages outside of the repo you're 
 
 > **Steps 6, 9, 10 and 11 mean the Skill tool — not your own approximation of them.**
 > Each of these skills carries a method you cannot reconstruct from its name. `reflect` is the
-> one that bites: its default judge is a **different engine** (headless `opencode`, via
-> `reflect/eval.sh`), because a same-model sub-agent shares your blind spots — which is the
-> entire reason the step exists. Spawning a same-model reviewer with the Agent tool looks like
-> reflecting and isn't. If a step names a skill, load the skill.
+> one that bites: its judge is a **different Claude model** (opus reflects with sonnet, sonnet
+> and fable reflect with opus), because a same-model reviewer shares your blind spots — which is
+> the entire reason the step exists. Spawning a same-model reviewer looks like reflecting and
+> isn't. If a step names a skill, load the skill.
 
 12. After actioning the contact, vocab, and reflection findings, write a self-criticism of the work:
    - Code form and structure (are the patterns clean, maintainable and efficient?)
