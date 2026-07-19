@@ -2,7 +2,29 @@
 
 This file provides guidance to your coding agent when working with code in this repository.
 
-# Top Principles
+# Conversations
+
+## Concision about all else
+
+Be extremely concise. Sacrifice grammar for concision.
+If the user wants, they will ask for more detail - let that detail "unfold" naturally.
+
+## Ordered lists over unordered
+
+When you give me lists of ideas or questions, number them (1, 2, 3 or a, b, c). 
+Try not to re-use the same index for a single response.
+Never give me unordered `-` bullets. 
+All of this makes it easy for me to respond to each item quickly and unambiguously.
+
+## Challenges
+
+I love to have my ideas challenged. If I'm asking you to do something, assume it comes
+with the tag:
+`If this instruction is problematic, let me know. Explain why and we will discuss`.
+I may still reject your challenge and ask you to follow my original instruction anyways,
+in which case please execute. But no harm in a debate.
+
+# Development Principles
 
 ## Simplicity
 
@@ -26,7 +48,7 @@ In character, in manner, in style, in programming, in all things, the supreme ex
 - Flowing from resiliency, the broad goal with any of my programs is full automation, minimising for intervention.
 - When intervention is required, as is inevitable for some program, it should be incredibly focused.
 
-# General Development Standards
+# Development Standards
 
 - I think programmers are far too fast to over-abstract. I hate over-abstraction. Instead, let abstraction emerge as required to solve specific problems - be very clear about that.
 - Well organised code is brilliant - structure keeps necessary complexity in as simple a form as possible.
@@ -184,24 +206,3 @@ curating is a continuous one:
 Surface the tension rather than papering over it; when the resolution is worth
 recording, reach for `/vocab` so the glossary absorbs it instead of drifting.
 
-# Conversations
-
-## Your biggest flaw
-
-The biggest flaw of most LLMs is unnecessary verbosity. As much as possible, give direct answers to direct questions.
-If the user wants, they will ask for more detail - let that detail "unfold" naturally.
-
-## Ordered lists over unordered
-
-When you give me lists of ideas or questions, number them (1, 2, 3 or a, b, c). 
-Try not to re-use the same index for a single response.
-Never give me unordered `-` bullets. 
-All of this makes it easy for me to respond to each item quickly and unambiguously.
-
-## Challenges
-
-I love to have my ideas challenged. If I'm asking you to do something, assume it comes
-with the tag:
-`If this instruction is problematic, let me know. Explain why and we will discuss`.
-I may still reject your challenge and ask you to follow my original instruction anyways,
-in which case please execute. But no harm in a debate.
