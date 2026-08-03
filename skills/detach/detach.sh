@@ -71,6 +71,25 @@ OSA
   esac
 }
 
+# Reject a linked git worktree as the launch dir. A session is resumable only from the dir
+# it was launched in, so one started inside a worktree loses its /resume entry the moment
+# `lgtm` deletes that worktree. The root repo is the durable home. Non-git dirs pass through.
+# A linked worktree's git-dir (.git/worktrees/<name>) differs from its git-common-dir (.git);
+# the main worktree's are equal.
+_reject_worktree() {  # cwd
+  local cwd="$1" gitdir commondir
+  gitdir="$(git -C "$cwd" rev-parse --absolute-git-dir 2>/dev/null)" || return 0
+  commondir="$(git -C "$cwd" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || return 0
+  [ "$gitdir" = "$commondir" ] && return 0
+  die "new: --cwd is a linked worktree, not the root repo:
+      $cwd
+    Launch the session from the root repo instead:
+      $(dirname "$commondir")
+    A session is resumable only from where it was launched, so one started inside a worktree
+    vanishes from /resume the moment lgtm deletes that worktree. For a /leaf, --cwd the base
+    repo and let the detached agent create the worktree itself."
+}
+
 # Build the interactive command for the chosen engine. --label seeds a human title where the
 # engine supports one; --model is passed through verbatim (Claude: "sonnet"; OpenCode:
 # "provider/model"), so the caller supplies the right form for the engine.
@@ -110,6 +129,7 @@ sub_new() {
   [ "${#rest[@]}" -gt 0 ] || die "new: missing prompt"
   [ -n "$label" ] || die "new: --label is required (it titles the session where supported)"
   [ -d "$cwd" ] || die "new: --cwd not a directory: $cwd"
+  _reject_worktree "$cwd"
   [ -n "$engine" ] || engine="$(_default_engine)"
   command -v "$engine" >/dev/null || die "$engine CLI not on PATH"
 

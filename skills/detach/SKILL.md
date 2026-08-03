@@ -9,6 +9,15 @@ description: Write a handoff doc, then spin off a parallel interactive agent ses
 or `opencode`), pre-seeded with a task and labelled `[detached] <label>`. You seed it and
 hand it off — the tab is the single driver of that session; you do not drive it yourself.
 
+## Launch from the root repo, never a worktree
+
+**Always launch from the root repo, not a `/leaf` worktree folder.** A session is resumable
+only from the dir it was launched in, so one started inside a worktree loses its `/resume`
+entry the instant `lgtm` deletes that worktree — the stream is gone. `detach.sh` **enforces**
+this: it rejects a `--cwd` that is a linked worktree and points you at the root repo. For a
+`/leaf`, `--cwd` the base repo and let the detached agent create the worktree itself (see
+*Detaching a `/leaf`*).
+
 ## Always handoff first
 
 Every `/detach` begins by writing a handoff doc, then seeds the new session with it — so the
