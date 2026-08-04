@@ -3,6 +3,12 @@ name: obsidian-note
 description: For reading and writing notes as requested by the user
 ---
 
+# Standards
+
+My global standards in `~/.claude/CLAUDE.md` govern notes as they govern everything else — read it. Most of all its **Simplicity** principle, its **Naming** guidance, and its bias to concision.
+
+Where that file and this one differ, **this one wins**: it is the vault's house style, and a note is not a chat message. In particular the conversational rules there (numbered lists over `-` bullets, challenging instructions) shape how I talk *to you*, not how a note reads.
+
 # Top Principle
 
 In character, in manner, in style, in writing, in all things, the supreme excellence is simplicity.
