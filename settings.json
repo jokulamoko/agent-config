@@ -51,6 +51,7 @@
       "Read(**)"
     ],
     "deny": [
+      "AskUserQuestion",
       "Read(**/.env)",
       "Read(**/.env.*)",
       "Read(**/.zshrc)",
