@@ -118,12 +118,8 @@ For a comment to be more than 1 line, it must have an incredibly compelling reas
 
 ## Updating files
 
-I think its part of your learning to update big files using a pattern like this:
-
-Bash(cat > {location} << 'PYEOF'
-{python_script})
-
-Don't do this - instead use your direct read/write commands. This is safer, more stable and already-approved.
+Write and edit files with the direct file tools, never by shelling out to
+`cat >` or a heredoc — safer, and already approved.
 
 ## Once-off Scripts
 
