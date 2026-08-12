@@ -131,58 +131,19 @@ For once off scripts such as backfills or spikes, please date the top of the scr
 
 ## Naming
 
-Think twice before committing to a name. The first word that comes to mind is
-usually the most generic one available — pause and ask what this thing actually
-*is* and *does* before you type it.
-
-- **Reveal intent, not mechanism.** Name by what it means in the problem domain,
-  not how it's implemented: `active_users`, not `filtered_list`.
-- **Borrow the domain's vocabulary.** Use the words a domain expert would use
-  (`ledger`, `invoice`, `quorum`). Don't invent programmer-ese for concepts that
-  already have a real name.
-- **Match the verb to the work.** `get_`/`is_` are cheap accessors. Use
-  `fetch_`/`load_` for I/O, `compute_`/`build_` for expensive or constructive
-  work, `parse_`/`render_`/`derive_` when that's literally what happens. The verb
-  is a promise about cost and effect — keep it.
-- **One concept, one word.** Pick `fetch` *or* `retrieve` *or* `get` for a given
-  operation and use it everywhere. Scattered synonyms imply distinctions that
-  don't exist.
-- **Cut noise words.** `data`, `info`, `manager`, `helper`, `util`, `process`,
-  `handle`, `_obj` add length without meaning. `Product` beats `ProductData`;
-  `accounts` beats `account_list`.
-- **Booleans read as assertions.** `is_active`, `has_pending`, `should_retry`,
-  `can_edit` — and stay positive (`is_valid`, never `is_not_invalid`).
-- **Scope sets length.** A loop index can be `i`; a module-level public function
-  cannot. The more widely a name is visible, the more it must stand on its own.
-- **Don't encode the type.** Type hints do that. Name the role: `users`, not
-  `user_list`; `timeout`, not `timeout_int`.
-- **Use consistent opposites.** `open/close`, `start/stop`, `source/dest`,
-  `min/max`. Don't pair `begin` with `finish`.
-
-A good name makes a comment unnecessary — if you reach for a clarifying comment,
-try folding it into the name instead.
-
-When the name you want is already taken, check whether the incumbent is broader
-than it should be. Often the existing thing is really a *specific* case wearing a
-*general* name. Rename it more narrowly (`Cache` → `MemoryCache`, `Handler` →
-`RetryHandler`) to free up the general term for the concept that truly deserves
-it. Naming is a whole-namespace activity, not a local one — it's fine to edit
-neighbors to make semantic room for a new term.
+The first word that comes to mind is usually the most generic one available.
+Name by what a thing means in the domain, not how it's built — `active_users`,
+not `filtered_list` — and borrow the words a domain expert would use. The verb
+is a promise about cost and effect: `get_` is a cheap accessor, `fetch_` does
+I/O, `compute_` is expensive. Cut noise words (`data`, `manager`, `helper`,
+`_obj`). One operation, one verb — scattered synonyms imply distinctions that
+don't exist.
 
 ## Ubiquitous Language
 
-Each repo keeps its **ubiquitous language** — the opinionated domain glossary —
-in `.library/VOCAB.md`. Read it; it is the source of truth for what terms mean in
-that project. Curating it is a deliberate act (`/vocab`); *noticing* when it needs
-curating is a continuous one:
-
-- **Flag conflicts.** When a term is used against its `VOCAB.md` definition, stop
-  and name it: "VOCAB defines 'X' as A, but you seem to mean B — which stands?"
-- **Flag fuzz.** When a word is vague or overloaded, ask which concept is meant
-  before building on it: "'account' — the Customer or the User? Those differ."
-
-Surface the tension rather than papering over it; when the resolution is worth
-recording, reach for `/vocab` so the glossary absorbs it instead of drifting.
+Each repo's domain glossary is `.library/VOCAB.md` — read it; it is the source
+of truth for what terms mean there. Flag conflicts and fuzz when you hit them
+rather than papering over.
 
 # Conversations
 
