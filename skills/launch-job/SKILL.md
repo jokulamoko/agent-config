@@ -39,7 +39,7 @@ is more than about twenty lines is the smell.
 safe to re-run — a foundation file you have since edited is reported as drift, never silently
 overwritten. Run it once per jobs repo; skip it when the directory already has `bin/jobctl`.
 
-**It is also where this device is configured, once.** `setup --dir ~/dev/jobs --prefix com.local`
+**It is also where this device is configured, once.** `setup --dir <path> --prefix <com.foo>`
 records both settings, and every later `new` and `check` finds them with no flag at all — a machine
 that keeps its jobs somewhere else is configured by running setup there. `launch-job.sh config`
 prints what is resolved and from where; its header explains which setting is owned by the device
@@ -72,7 +72,7 @@ way. Size the budget well above the worst legitimate run; it is there to catch a
 police a slow day.
 
 Then edit `run.sh`: replace the TODO header line with what this job does and, if the reason it
-exists is non-obvious, why. `indexation-sweep/run.sh` is the reference for a job that reports.
+exists is non-obvious, why. An existing job that already notifies is the reference to copy from.
 
 ## Prove it
 
@@ -90,7 +90,7 @@ Not done until, from the jobs repo:
 ## When launchd is the wrong home
 
 Agents run only while you are logged in and the system is awake. Anything that must survive a shut
-lid on battery, a reboot, or being off-network belongs on the always-on droplet instead. Say so
+lid on battery, a reboot, or being off-network belongs on an always-on host instead. Say so
 rather than scaffolding a job that will quietly miss half its runs.
 
 ## The repo is the source of truth

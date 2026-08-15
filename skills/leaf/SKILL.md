@@ -65,7 +65,7 @@ skill declares an extension point instead:
   extra setup steps, local package wiring, caveats. Treat it as an addendum to these
   instructions, not a replacement.
 
-Note that sometimes you may depend on local packages outside of the repo you're working on. In such situations, I should have already added a copy of that package to `.worktrees/`. If I haven't, find the package in my system (probably in `~/projects`) and copy it into `.worktrees/`.
+Note that sometimes you may depend on local packages outside of the repo you're working on. In such situations, I should have already added a copy of that package to `.worktrees/`. If I haven't, find the package on this machine — wherever repos are kept locally, typically a sibling of the repo you are in — and copy it into `.worktrees/`.
 
 ## Investigation
 

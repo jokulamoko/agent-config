@@ -21,7 +21,7 @@
 # Two settings, each owned where it actually belongs, so neither has to be repeated:
 #
 #   dir           which jobs repo this device uses. A property of the DEVICE, so it lives in
-#                 ~/.config/launch-job/config. Set it once (`setup --dir ~/dev/jobs`) and every
+#                 ~/.config/launch-job/config. Set it once (`setup --dir <path>`) and every
 #                 later command finds it. A --dir flag overrides for one run.
 #   label_prefix  the reverse-DNS prefix of every plist Label here (com.<prefix>.<job>). A
 #                 property of the REPO — the jobs already in it must all agree — so it lives in
@@ -85,9 +85,8 @@ if [ -z "$dir" ]; then
   dir=$(setting "$CONFIG" dir)
   [ -n "$dir" ] && dir_source="$CONFIG"
 fi
-if [ -z "$dir" ]; then
-  dir="$HOME/projects/jobs"; dir_source="built-in default"
-fi
+[ -n "$dir" ] || die "no jobs directory known — name it once and every later command finds it:
+      launch-job.sh setup --dir <path>"
 dir="${dir%/}"
 
 # The label prefix belongs to the repo. Read what is already there before falling back, so a
