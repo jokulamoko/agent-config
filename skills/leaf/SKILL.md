@@ -73,39 +73,37 @@ Note that sometimes you may depend on local packages outside of the repo you're 
    - As an LLM you can't see things like browser executions. Make up for this gap by adding comprehensive logging, analysis of results, etc. — signals available to you as a command line program.
    - Investigate, investigate, INVESTIGATE. The user will provide plenty of autonomous scope. Speed of implementation is not a concern.
 
-## Plan
+## TDD
 
-5. From the investigation, develop an implementation plan — the approach, the files it
-   touches, the order of work, and the boundary cases it must hold.
-6. **Invoke the `reflect` skill via the Skill tool** (not a hand-rolled reviewer — see the
-   note below) on the plan: it spawns an unbiased read-only review of the plan against
-   the original intent, then triages the findings. Fold what survives back into the plan
-   before writing any code — catching a wrong approach here is far cheaper than catching it
-   after implementation.
+5. **Invoke the `tdd` skill via the Skill tool** (not a hand-rolled version — see the note
+   below). It turns the investigation into tests that are gated and committed before any
+   implementation — red for new behaviour, pinned green for a refactor. Those tests are what
+   "done" means for the rest of this leaf, and its guard hook will block implementation edits
+   until they exist.
 
 ## Implementation
 
-7. Make codebase changes to resolve the issue or add the feature.
-8. Test the fix or feature comprehensively. Question thoroughly if it has been implemented correctly. Consider boundary cases.
-9. **Invoke the `contact` skill via the Skill tool** to audit how much contact with reality the work has actually had — concrete execution against real data, end-to-end runs, observed logs/metrics — versus what's still only theoretical. Action any cheap, reversible next touches to de-risk the work before it reaches the user.
-10. **Invoke the `vocab` skill via the Skill tool** to curate `.library/VOCAB.md` against the work just done — capture any new domain terms the implementation coined, reconcile any usage that drifted from an existing definition, and settle fuzzy or overloaded words.
-11. **Invoke the `reflect` skill via the Skill tool** — the pre-user-input review: it spawns an unbiased read-only review of the work against the original intent, then triages the findings and actions what survives.
+6. Make codebase changes to resolve the issue or add the feature, driving the red tests green.
+7. Test the fix or feature comprehensively beyond the pinned tests. Question thoroughly if it has been implemented correctly. Consider boundary cases.
+8. **Invoke the `contact` skill via the Skill tool** to audit how much contact with reality the work has actually had — concrete execution against real data, end-to-end runs, observed logs/metrics — versus what's still only theoretical. Action any cheap, reversible next touches to de-risk the work before it reaches the user.
+9. **Invoke the `vocab` skill via the Skill tool** to curate `.library/VOCAB.md` against the work just done — capture any new domain terms the implementation coined, reconcile any usage that drifted from an existing definition, and settle fuzzy or overloaded words.
+10. **Invoke the `reflect` skill via the Skill tool** — the pre-user-input review: it spawns an unbiased read-only review of the work against the original intent, then triages the findings and actions what survives.
 
-> **Steps 6, 9, 10 and 11 mean the Skill tool — not your own approximation of them.**
+> **Steps 5, 8, 9 and 10 mean the Skill tool — not your own approximation of them.**
 > Each of these skills carries a method you cannot reconstruct from its name. `reflect` is the
 > one that bites: its judge is a **different Claude model** (opus reflects with sonnet, sonnet
 > and fable reflect with opus), because a same-model reviewer shares your blind spots — which is
 > the entire reason the step exists. Spawning a same-model reviewer looks like reflecting and
 > isn't. If a step names a skill, load the skill.
 
-12. After actioning the contact, vocab, and reflection findings, write a self-criticism of the work:
+11. After actioning the contact, vocab, and reflection findings, write a self-criticism of the work:
    - Code form and structure (are the patterns clean, maintainable and efficient?)
    - Solution — is it a patch, or a direct, comprehensive fix?
 
 ## Completion
 
-13. Remove all debug logs.
-14. Write `.library/forks/{index}-{task-slug}.md` documenting:
+12. Remove all debug logs.
+13. Write `.library/forks/{index}-{task-slug}.md` documenting:
     - **Date**
     - **Problem:** what the issue or goal was
     - **Investigation:** what you found during exploration (omit if no investigation was needed)
@@ -113,8 +111,8 @@ Note that sometimes you may depend on local packages outside of the repo you're 
     - **Implementation:** key files/functions changed and how — no excessive code (the user can see the diff)
     - **Self-criticism:** include a section critiquing the work
     - **Test results:** what was run, what passed. How do you know the problem is fixed?
-15. Commit all changes (including the library doc) and push the branch.
-16. In your final message — the summary you present while awaiting the user's review — explain the key changes: what changed, why, and the decisions that mattered, so the user can judge the work without reading the whole diff. Then report the name of the branch and the CLI command that opens VS Code at the wt folder.
+14. Commit all changes (including the library doc) and push the branch.
+15. In your final message — the summary you present while awaiting the user's review — explain the key changes: what changed, why, and the decisions that mattered, so the user can judge the work without reading the whole diff. Then report the name of the branch and the CLI command that opens VS Code at the wt folder.
 
 ## Rebasing
 
