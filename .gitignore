@@ -3,7 +3,6 @@
 !.gitignore
 !README.md
 !CLAUDE.md
-!settings.json
 
 !hooks/
 !hooks/**
