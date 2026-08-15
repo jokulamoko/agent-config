@@ -112,7 +112,11 @@ Note that sometimes you may depend on local packages outside of the repo you're 
     - **Self-criticism:** include a section critiquing the work
     - **Test results:** what was run, what passed. How do you know the problem is fixed?
 14. Commit all changes (including the library doc) and push the branch.
-15. In your final message — the summary you present while awaiting the user's review — explain the key changes: what changed, why, and the decisions that mattered, so the user can judge the work without reading the whole diff. Then report the name of the branch and the CLI command that opens VS Code at the wt folder.
+15. In your final message — the summary you present while awaiting the user's review — explain the key changes: what changed, why, and the decisions that mattered, so the user can judge the work without reading the whole diff. Then hand over a **review path**, in two parts:
+    - **Read these first, in this order.** The two or three classes/modules that carry the shape of the work — the one that owns the new concept, then what it hangs off. Say what each is for in a line, so the user builds the mental model before meeting any detail. Name files with line numbers.
+    - **Then scrutinise these.** Where you want a second pair of eyes: the decisions that could reasonably have gone the other way, the seams where this work meets existing code, anything the tests do not cover, and any part you are least sure of. Be specific about *what* to check, not just where — the question you would ask if you were reviewing it.
+
+    Order both parts so the diff can be skimmed top-down; do not narrate the whole change again. Finish with the branch name and the CLI command that opens VS Code at the wt folder.
 
 ## Rebasing
 
