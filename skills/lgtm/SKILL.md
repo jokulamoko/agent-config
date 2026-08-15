@@ -12,9 +12,23 @@ lands a top-level leaf through a GitHub pull request instead of a local merge. `
 recognised suffix, not strict syntax — `lgtm pr`, `lgtm --pr`, or "lgtm, as a PR" all select PR
 mode.
 
-The mechanical landing — base lookup, database teardown, squash-merge, worktree removal, and
-the push rule — is done by `lgtm-land.sh`, which sits beside this skill. Your job is the
-judgement around it: the rebase, the docs, and the messages.
+The mechanical landing — base lookup, the verification gate, squash-merge, the push rule, database
+teardown, and worktree removal — is done by `lgtm-land.sh`, which sits beside this skill. Your job
+is the judgement around it: the rebase, the docs, and the messages.
+
+## The gate
+
+`lgtm-land.sh land` refuses to land work the project has not verified. It runs **`make check`** in
+the worktree and aborts on failure; if the project declares no `check` target it aborts too, rather
+than landing blind. One target, whatever this project's gate is — tests, type checks, lint.
+
+`--skip-checks` exists for the case where the gate genuinely cannot run locally. It logs a warning
+and lands anyway. Do not reach for it because a test failed: a failing gate means the leaf is not
+done. Use it only when the user says to.
+
+Nothing is destroyed until the work is safely landed — the order is verify, merge, push, then drop
+the database and remove the worktree. A failure at any step leaves the worktree intact, database
+live, to fix in.
 
 ## The base
 
@@ -38,9 +52,11 @@ explain why, and conclude it locally instead.
 
 1. Rebase on the local base branch, working through any conflicts. `lgtm-land.sh` refuses to
    land a leaf that is not rebased onto its base — resolving conflicts is yours, not the
-   script's.
+   script's. For a top-level leaf it also fetches and refuses if local `main` is behind
+   `origin/main`: pull, rebase again, and re-run the gate before landing.
 2. Ensure the `.library/forks/` doc is up to date with any changes since you last touched it,
-   and commit it. The worktree must be clean before landing.
+   and commit it. Both the leaf worktree *and* the base worktree must be clean before landing —
+   anything staged in the base would otherwise be swept into the squash commit.
 
 ## Default — land locally
 
@@ -52,10 +68,10 @@ explain why, and conclude it locally instead.
    ~/.claude/skills/lgtm/lgtm-land.sh land <branch> -m "<summarising commit message>"
    ```
 
-   This drops the leaf's database if the project provisions one, squash-merges into the base,
-   removes the worktree, and pushes — but **only when the base is `main`**. A sub-worktree lands
-   into its parent and is deliberately not pushed: the parent keeps accumulating its merged
-   slices and is pushed when *it* is landed. Pass `--dry-run` first if you want to see the plan.
+   This runs the gate, squash-merges into the base, pushes, then drops the leaf's database and
+   removes the worktree. It pushes **only when the base is `main`**: a sub-worktree lands into its
+   parent and is deliberately not pushed — the parent keeps accumulating its merged slices and is
+   pushed when *it* is landed. Pass `--dry-run` first if you want to see the plan.
 
 5. For a sub-worktree, you are done in the main repo — switch back into the parent worktree if
    the user wants to keep working on it.
@@ -82,6 +98,10 @@ merges, so that if CI fails the worktree is still intact, with its database live
    ```
    ~/.claude/skills/lgtm/lgtm-land.sh teardown <branch>
    ```
+
+   It asks `gh` whether the branch's PR is **merged** and refuses otherwise — a squash-merge gives
+   the commit a new SHA, so the PR's own state is the only proof the work landed. `--force`
+   overrides, for work that landed some other way.
 
 ## Why some steps need gh
 
