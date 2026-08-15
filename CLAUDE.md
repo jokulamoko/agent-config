@@ -104,7 +104,7 @@ For a comment to be more than 1 line, it must have an incredibly compelling reas
 
 - Use `_` prefix for internal attributes and methods in classes
 - Don't write thin wrappers unless they save large amounts of code - call methods directly
-- When a function primarily relates to a particular class, make it a method or property of that class instead of a standalone function
+- Favour methods and properties on a class over module-level functions — a module-level function is the last resort, for genuinely standalone behaviour that belongs to no owner. If a function takes an object as its main argument, it wants to be a method on it
 - Remove deprecated code completely rather than creating compatibility layers
 
 ### File Paths
