@@ -1,0 +1,182 @@
+#!/usr/bin/env bash
+# jobctl — manage the launchd LaunchAgents defined in this repo.
+#
+# Each job lives in <repo>/<job>/ with two files:
+#   run.sh                 a one-shot script: do one unit of work and exit
+#   com.<prefix>.<job>.plist    the launchd agent (schedule, paths, label)
+#
+# "start" symlinks the plist into ~/Library/LaunchAgents and loads it; "stop"
+# unloads it and removes the symlink. launchd owns the schedule and guarantees
+# only one instance of a job runs at a time.
+set -euo pipefail
+
+JOBS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+LA_DIR="$HOME/Library/LaunchAgents"
+LOG_DIR="$HOME/.cache/jobs"
+DOMAIN="gui/$(id -u)"
+
+die() { echo "jobctl: $*" >&2; exit 1; }
+
+# Freeze the env vars a job declares in <job>/env.required, captured from the
+# shell you run `start` from (launchd never sources ~/.zshrc, so values it would
+# set are absent at tick time). Fail loudly here — in your terminal — rather than
+# silently load an agent that dies every interval. run.sh sources the result.
+freeze_env() {
+  local job="$1" spec="$JOBS_DIR/$1/env.required" out="$LOG_DIR/$1.env" name val body=""
+  [ -f "$spec" ] || return 0
+  # Validate everything first; only write the sidecar once all vars are present,
+  # so a failed start never leaves a partial/empty env file behind.
+  while IFS= read -r name; do
+    name="${name%%#*}"; name="${name//[[:space:]]/}"
+    [ -z "$name" ] && continue
+    val="${!name:-}"
+    [ -z "$val" ] && die "$job: required env var '$name' is unset in your shell — start aborted (set it, e.g. in ~/.zshrc, then retry)"
+    body+="$(printf 'export %s=%q' "$name" "$val")"$'\n'
+  done < "$spec"
+  printf '%s' "$body" > "$out"
+}
+
+# Optional install-time guard, run in YOUR terminal at `start` before the agent is
+# loaded. env.required only validates the *wrapper's* shell vars; a job's own
+# secrets live in its project's .env and are invisible here — so a misconfigured
+# secret would otherwise only show up as a silent FATAL every tick. If the job ships
+# <job>/preflight.sh, run it (it sets up env + execs the owning project's own check)
+# and abort the start loudly on failure. No script = no preflight; nothing to do.
+preflight() {
+  local job="$1" script="$JOBS_DIR/$1/preflight.sh"
+  [ -f "$script" ] || return 0
+  zsh "$script" || die "$job: preflight failed — start aborted (fix the above, then retry)"
+}
+
+plist_src() {
+  local job="$1" match
+  for match in "$JOBS_DIR/$job"/com.*.plist; do
+    [ -e "$match" ] && { printf '%s\n' "$match"; return 0; }
+  done
+  die "no plist for job '$job' (looked in $JOBS_DIR/$job/)"
+}
+
+label_for() {
+  local src
+  src="$(plist_src "$1")"
+  basename "$src" .plist
+}
+
+all_jobs() {
+  local plist
+  shopt -s nullglob
+  for plist in "$JOBS_DIR"/*/com.*.plist; do
+    basename "$(dirname "$plist")"
+  done
+}
+
+# Resolve a command's job arguments: empty or "all" means every job.
+targets() {
+  if [ "$#" -eq 0 ] || [ "$1" = all ]; then all_jobs; else printf '%s\n' "$@"; fi
+}
+
+cmd_list() {
+  local job label state
+  printf '%-16s %-24s %s\n' JOB LABEL STATE
+  for job in $(all_jobs); do
+    label="$(label_for "$job")"
+    if launchctl print "$DOMAIN/$label" >/dev/null 2>&1; then
+      state="loaded"
+    elif [ -L "$LA_DIR/$label.plist" ]; then
+      state="installed (stopped)"
+    else
+      state="not started"
+    fi
+    printf '%-16s %-24s %s\n' "$job" "$label" "$state"
+  done
+}
+
+cmd_start() {
+  local job="$1" src label
+  src="$(plist_src "$job")"
+  label="$(label_for "$job")"
+  mkdir -p "$LA_DIR" "$LOG_DIR"
+  freeze_env "$job"
+  preflight "$job"
+  ln -sfn "$src" "$LA_DIR/$label.plist"
+  reload_agent "$label"
+  echo "started $label"
+}
+
+# Idempotent (re)load: converge to "loaded" from any state — not started, already
+# loaded, or mid-teardown. bootout first so a re-start applies plist/run.sh edits,
+# then WAIT for launchd to actually drop the label: a KeepAlive daemon's process
+# takes a moment to die, and bootstrapping while it lingers fails with
+# "Input/output error" (5). Bootstrap is then retried over the same transient.
+reload_agent() {
+  local label="$1" i
+  launchctl bootout "$DOMAIN/$label" >/dev/null 2>&1 || true
+  for ((i = 0; i < 50; i++)); do
+    launchctl print "$DOMAIN/$label" >/dev/null 2>&1 || break
+    sleep 0.1
+  done
+  for ((i = 0; i < 20; i++)); do
+    launchctl bootstrap "$DOMAIN" "$LA_DIR/$label.plist" >/dev/null 2>&1 && return 0
+    sleep 0.2
+  done
+  # Final attempt, this time surfacing launchd's actual error.
+  launchctl bootstrap "$DOMAIN" "$LA_DIR/$label.plist" \
+    || die "could not load $label (launchd bootstrap failed)"
+}
+
+cmd_stop() {
+  local job="$1" label
+  label="$(label_for "$job")"
+  launchctl bootout "$DOMAIN/$label" >/dev/null 2>&1 || true
+  rm -f "$LA_DIR/$label.plist"
+  echo "stopped $label"
+}
+
+# Force one run right now, regardless of schedule (handy for testing).
+cmd_run() {
+  local job="$1" label
+  label="$(label_for "$job")"
+  launchctl kickstart -k "$DOMAIN/$label" \
+    || die "could not kick '$label' — is it started? (jobctl start $job)"
+  echo "kicked $label"
+}
+
+cmd_status() {
+  local job="$1" label
+  label="$(label_for "$job")"
+  launchctl print "$DOMAIN/$label" 2>/dev/null \
+    || echo "$label: not loaded — run 'jobctl start $job'"
+}
+
+cmd_tail() {
+  local job="$1"
+  tail -n 50 -F "$LOG_DIR/$job.out" "$LOG_DIR/$job.err"
+}
+
+usage() {
+  cat >&2 <<'EOF'
+usage: jobctl <command> [job ...]
+
+  list                 show every job and whether it is loaded
+  start [job|all]      symlink + load a job (begins its schedule)
+  stop  [job|all]      unload + remove a job (ends its schedule)
+  run    <job>         force one run now, ignoring the schedule
+  status [job]         full launchd state for one job (none = list)
+  tail   <job>         follow the job's stdout/stderr logs
+
+A bare "start"/"stop" with no job acts on all jobs.
+EOF
+}
+
+cmd="${1:-list}"
+[ "$#" -gt 0 ] && shift || true
+case "$cmd" in
+  list)            cmd_list ;;
+  start)           for j in $(targets "$@"); do cmd_start "$j"; done ;;
+  stop)            for j in $(targets "$@"); do cmd_stop  "$j"; done ;;
+  run)             [ "$#" -ge 1 ] || die "run needs a job name"; cmd_run "$1" ;;
+  status)          if [ "$#" -ge 1 ]; then cmd_status "$1"; else cmd_list; fi ;;
+  tail)            [ "$#" -ge 1 ] || die "tail needs a job name"; cmd_tail "$1" ;;
+  -h|--help|help)  usage ;;
+  *)               usage; exit 1 ;;
+esac

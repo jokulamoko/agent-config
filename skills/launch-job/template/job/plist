@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>__LABEL__</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>__JOBS_DIR__/__JOB__/run.sh</string>
+    </array>
+
+__SCHEDULE__
+
+    <!-- Also run once the moment the agent is loaded (login / `jobctl start`). -->
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>__HOME__/.cache/jobs/__JOB__.out</string>
+    <key>StandardErrorPath</key>
+    <string>__HOME__/.cache/jobs/__JOB__.err</string>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+</dict>
+</plist>
