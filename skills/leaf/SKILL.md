@@ -13,7 +13,7 @@ merge back into. Determine it from where you are when invoked:
 - **In the main repo** → the base is local `main`. The default case, unchanged.
 - **Inside an existing worktree** → the base is *that worktree's branch*. The new leaf is
   a **sub-worktree**: cut from the parent's current HEAD and merged back into the parent
-  (not main) at `lgtm`. This is how you slice a `/decompose` unit off a larger feature
+  (not main) when it lands. This is how you slice a `/decompose` unit off a larger feature
   worktree without disturbing it, and how sub-slices stack up before the parent itself
   lands on main.
 
@@ -120,11 +120,7 @@ Often, I will have multiple worktrees in parallel. Because of this, you may need
 Rebase on the **local base branch** — the parent worktree's branch for a sub-worktree,
 otherwise local `main` — never on `origin/...`.
 
-## lgtm
+## Landing
 
-When the user writes `lgtm` (or `lgtm pr`), the work is done — conclude the leaf with the
-**`lgtm` skill**. It rebases on the base, finalises the library doc, drops the leaf's
-database branch, merges the leaf back into its base, and removes the worktree. The default lands a
-leaf locally (squash-merge into the base, then push for a top-level leaf); adding `pr`
-lands a top-level leaf through a GitHub PR instead — push, open the PR, watch CI, and merge
-via `gh` once green, with GitHub advancing origin/main and local main pulled back down.
+Do not land the leaf yourself. Stop at step 15 and wait — how a leaf lands varies by
+environment, and I will tell you which flow to run when I've reviewed the work.
