@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # Create and provision a leaf worktree. Invoked by the /leaf skill (step 2).
 #
-#   leaf-setup.sh <prefix>/<slug>     e.g. leaf-setup.sh feat/checkout-retry
+#   leaf-setup.sh <prefix>/<slug> [base]    e.g. leaf-setup.sh feat/checkout-retry
+#                                                leaf-setup.sh fix/tz-drift release/2.0
 #
-# Cuts from local `main` when run in the main repo, or from HEAD when run inside an
-# existing worktree (a sub-worktree). Prints the absolute worktree path to stdout;
-# all progress goes to stderr so callers can capture the path cleanly.
+# Cuts from <base> when given. Otherwise from local `main` when run in the main repo, or
+# from HEAD when run inside an existing worktree (a sub-worktree). Prints the absolute
+# worktree path to stdout; all progress goes to stderr so callers can capture the path
+# cleanly.
 
 set -euo pipefail
 
@@ -13,7 +15,8 @@ log() { echo "leaf-setup: $*" >&2; }
 die() { echo "leaf-setup: error: $*" >&2; exit 1; }
 
 branch="${1:-}"
-[ -n "$branch" ] || die "usage: leaf-setup.sh <prefix>/<slug>  (e.g. feat/checkout-retry)"
+requested_base="${2:-}"
+[ -n "$branch" ] || die "usage: leaf-setup.sh <prefix>/<slug> [base]  (e.g. feat/checkout-retry)"
 
 git rev-parse --git-dir >/dev/null 2>&1 || die "not inside a git repository"
 
@@ -22,13 +25,20 @@ common_dir=$(cd "$(git rev-parse --git-common-dir)" && pwd)
 main_root=$(dirname "$common_dir")
 
 # In the main repo these are the same path; inside a linked worktree they diverge.
-if [ "$git_dir" = "$common_dir" ]; then
+if [ -n "$requested_base" ]; then
+  base="$requested_base"
+  source_root=$(git rev-parse --show-toplevel)
+elif [ "$git_dir" = "$common_dir" ]; then
   base="main"
   source_root="$main_root"
 else
   base=$(git rev-parse --abbrev-ref HEAD)
   source_root=$(git rev-parse --show-toplevel)
 fi
+
+# A leaf is always cut from, rebased on, and landed into a LOCAL branch — an origin/... or
+# detached start point would leave lgtm-land.sh with nothing it can merge into.
+git show-ref --verify --quiet "refs/heads/$base" || die "base branch '$base' does not exist locally"
 
 slug="${branch##*/}"
 worktree_dir="$main_root/.worktrees/$slug"

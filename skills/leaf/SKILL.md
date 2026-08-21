@@ -1,6 +1,6 @@
 ---
 name: leaf
-description: Create an isolated worktree branch with its own database branch, investigate thoroughly, implement changes, document in .library/forks/, and push — cut from local main, or off the current worktree when run from inside one. Use when starting a bug fix, feature, or refactor that needs isolation, including slicing a /decompose unit off a larger feature worktree.
+description: Create an isolated worktree branch with its own database branch, investigate thoroughly, implement changes, document in .library/forks/, and push — cut from any named base branch, defaulting to local main, or off the current worktree when run from inside one. Use when starting a bug fix, feature, or refactor that needs isolation, including slicing a /decompose unit off a larger feature worktree.
 ---
 
 # Leaf
@@ -8,14 +8,18 @@ description: Create an isolated worktree branch with its own database branch, in
 Create an isolated worktree to work on a task. `$ARGUMENTS` describes the task.
 
 **The base.** Every leaf has a *base* — the branch it is cut from and will eventually
-merge back into. Determine it from where you are when invoked:
+merge back into. Determine it in this order:
 
-- **In the main repo** → the base is local `main`. The default case, unchanged.
-- **Inside an existing worktree** → the base is *that worktree's branch*. The new leaf is
-  a **sub-worktree**: cut from the parent's current HEAD and merged back into the parent
-  (not main) when it lands. This is how you slice a `/decompose` unit off a larger feature
-  worktree without disturbing it, and how sub-slices stack up before the parent itself
-  lands on main.
+- **Named in `$ARGUMENTS`** → that branch is the base, whatever it is. Take it when the task
+  says so explicitly (`--base release/2.0`, "off `release/2.0`", "against `staging`"). It must
+  be a local branch; if it only exists on the remote, create the local tracking branch first
+  rather than basing on `origin/...`.
+- **Otherwise, in the main repo** → the base is local `main`. The default case.
+- **Otherwise, inside an existing worktree** → the base is *that worktree's branch*. The new
+  leaf is a **sub-worktree**: cut from the parent's current HEAD and merged back into the
+  parent (not main) when it lands. This is how you slice a `/decompose` unit off a larger
+  feature worktree without disturbing it, and how sub-slices stack up before the parent
+  itself lands on main.
 
 Throughout the steps below, "the base" means this branch — where the old single-level
 flow said "main", read "the base".
@@ -33,13 +37,16 @@ over. But it shouldn't be always triggered; only run it when I ask for it.
    anywhere in the repo:
 
    ```
-   ~/.claude/skills/leaf/leaf-setup.sh <prefix>/<task-slug>
+   ~/.claude/skills/leaf/leaf-setup.sh <prefix>/<task-slug> [base]
    ```
 
-   It infers the base from where you are — local `main` in the main repo, the current branch's
-   `HEAD` inside a worktree — places the worktree flat under `<main_root>/.worktrees/<task-slug>`,
-   copies `.env` in, and syncs the uv workspace if the project has a `uv.lock`. It prints the
-   worktree path on stdout and fails closed if that path or branch already exists.
+   Pass the base only when the task named one; omit it otherwise. Without it the script infers
+   the base from where you are — local `main` in the main repo, the current branch's `HEAD`
+   inside a worktree. It records the base on the branch (`branch.<branch>.leafBase`) so later
+   steps and `lgtm-land.sh` never have to guess it, places the worktree flat under
+   `<main_root>/.worktrees/<task-slug>`, copies `.env` in, and syncs the uv workspace if the
+   project has a `uv.lock`. It prints the worktree path on stdout, and fails closed if the base
+   is not a local branch or if that path or branch already exists.
 
    Then switch your session into it — Claude Code: `EnterWorktree` with **`name`** set to
    `<prefix>/<task-slug>` and **no `path`**. The `WorktreeCreate` hook resolves the worktree the
@@ -123,6 +130,18 @@ Note that sometimes you may depend on local packages outside of the repo you're 
     ## Worth Scrutiny
     ```
 
+    Open with a one-line diff scale against the base, so the size of what is being reviewed is
+    known before any prose. Read the base back rather than recalling it, and measure from the
+    merge-base so a stale base does not inflate the numbers:
+
+    ```
+    base=$(git config "branch.$(git branch --show-current).leafBase")
+    git diff --shortstat "$(git merge-base "$base" HEAD)" HEAD
+    ```
+
+    Render it as: `` `<branch>` vs `<base>` — N files, +X/−Y ``. If the diff is large or lopsided
+    (a big deletion, a vendored file, a lockfile churn), say in a clause what accounts for it.
+
     - **Motivation** — the task as it stood before any of this existed: the problem, and why it was worth doing. The review often happens days later, so assume nothing is remembered. Two or three sentences.
     - **Summary of Work & Outcomes** — what changed, and what it now does that it did not before. The decisions that mattered, with the reasoning. Enough that the work can be judged without reading the whole diff.
     - **Reality Contact** — what was actually executed against real data, end to end, and what was observed: the runs, the logs, the tests, the numbers. Say plainly what remains theoretical.
@@ -134,8 +153,14 @@ Note that sometimes you may depend on local packages outside of the repo you're 
 ## Rebasing
 
 Often, I will have multiple worktrees in parallel. Because of this, you may need to rebase.
-Rebase on the **local base branch** — the parent worktree's branch for a sub-worktree,
-otherwise local `main` — never on `origin/...`.
+Rebase on the leaf's **own local base branch** — recorded at setup, so read it rather than
+assuming `main`:
+
+```
+git config "branch.$(git branch --show-current).leafBase"
+```
+
+Never rebase on `origin/...`.
 
 ## Landing
 
