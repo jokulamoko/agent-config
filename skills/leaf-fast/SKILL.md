@@ -32,7 +32,10 @@ one for it.
 
    It infers the base from where you are, places the worktree at
    `<main_root>/.worktrees/<task-slug>`, copies `.env` in, syncs the uv workspace if there
-   is a `uv.lock`, prints the path, and fails closed if the path or branch already exists.
+   is a `uv.lock`, and prints the path. Re-running is safe: an existing worktree is reused and
+   an existing branch gets one attached. stderr says `created`, `attached to existing branch`,
+   or `reusing worktree` — on anything but `created` you are resuming existing work, so read
+   the branch's diff against its base first.
 
    Then enter it — Claude Code: `EnterWorktree` with **`name`** set to
    `<prefix>/<task-slug>` and **no `path`**. Pass `name`, never `path`: a model-supplied

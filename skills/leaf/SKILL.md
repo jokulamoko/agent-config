@@ -46,7 +46,12 @@ over. But it shouldn't be always triggered; only run it when I ask for it.
    steps and `lgtm-land.sh` never have to guess it, places the worktree flat under
    `<main_root>/.worktrees/<task-slug>`, copies `.env` in, and syncs the uv workspace if the
    project has a `uv.lock`. It prints the worktree path on stdout, and fails closed if the base
-   is not a local branch or if that path or branch already exists.
+   is not a local branch.
+
+   Re-running is safe: an existing worktree is reused and an existing branch gets one attached.
+   stderr says `created`, `attached to existing branch`, or `reusing worktree` — on anything
+   but `created` you are resuming existing work, so read the branch's diff against its base
+   before assuming a clean slate.
 
    Then switch your session into it — Claude Code: `EnterWorktree` with **`name`** set to
    `<prefix>/<task-slug>` and **no `path`**. The `WorktreeCreate` hook resolves the worktree the

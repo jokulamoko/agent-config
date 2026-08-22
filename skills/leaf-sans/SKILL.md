@@ -44,7 +44,10 @@ over. But it shouldn't be always triggered; only run it when I ask for it.
    It infers the base from where you are — local `main` in the main repo, the current branch's
    `HEAD` inside a worktree — places the worktree flat under `<main_root>/.worktrees/<task-slug>`,
    copies `.env` in, and syncs the uv workspace if the project has a `uv.lock`. It prints the
-   worktree path on stdout and fails closed if that path or branch already exists.
+   worktree path on stdout. Re-running is safe: an existing worktree is reused and an existing
+   branch gets one attached. stderr says `created`, `attached to existing branch`, or `reusing
+   worktree` — on anything but `created` you are resuming existing work, so read the branch's
+   diff against its base first.
 
    Then switch your session into it — Claude Code: `EnterWorktree` with **`name`** set to
    `<prefix>/<task-slug>` and **no `path`**. The `WorktreeCreate` hook resolves the worktree the
