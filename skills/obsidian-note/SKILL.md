@@ -29,6 +29,17 @@ My obsidian notes started as a bulk export from Notion. This export added an ext
 This is not a convention I want to maintain - for any unordered or ordered lists for example, do not add a blank line between items.
 Blank lines between substantive paragraphs of text is permitted and encouraged.
 
+## Indentation
+
+Mentally, I think in terms of branched nodes. Formatting like this:
+
+`
+*core idea is that ...*
+- I think that because of ...
+  - Evidence for this is ...
+- Another point worth emphasising is ...
+`
+
 ## Linking
 
 - Use Obsidian `[[wikilinks]]` syntax: `[[Note Title]]`
