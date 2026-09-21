@@ -21,12 +21,25 @@ mkdir -p "$LAUNCH_DIR"
 die() { echo "detach: $*" >&2; exit 1; }
 command -v osascript >/dev/null || die "osascript not found (detach needs macOS)"
 
-# Pick the default engine: honour $DETACH_ENGINE, else the first CLI on PATH (claude wins).
+# Default engine: the harness this is running inside ($CLAUDECODE / $OPENCODE), else
+# $DETACH_ENGINE, else the first CLI on PATH (claude wins).
 _default_engine() {
+  if [ -n "${CLAUDECODE:-}" ]; then echo claude; return; fi
+  if [ -n "${OPENCODE:-}" ]; then echo opencode; return; fi
   case "${DETACH_ENGINE:-}" in claude|opencode) echo "$DETACH_ENGINE"; return;; esac
   if command -v claude >/dev/null; then echo claude
   elif command -v opencode >/dev/null; then echo opencode
   else echo claude; fi
+}
+
+# Default model: the one the calling Claude Code session last used, read from its transcript.
+# Empty when not inside Claude Code (OpenCode exposes no such record) — the engine default applies.
+_current_model() {  # engine
+  [ "$1" = claude ] && [ -n "${CLAUDE_CODE_SESSION_ID:-}" ] || return 0
+  local transcript
+  transcript="$(ls "$HOME"/.claude/projects/*/"$CLAUDE_CODE_SESSION_ID".jsonl 2>/dev/null | head -1)"
+  [ -n "$transcript" ] || return 0
+  grep -o '"model":"[^"<]*"' "$transcript" | tail -1 | sed 's/^"model":"//; s/"$//'
 }
 
 # Open a new terminal tab that cd's to `dir` and runs `cmd`. The command is written to a
@@ -149,6 +162,7 @@ sub_new() {
   _reject_worktree "$cwd"
   [ -n "$engine" ] || engine="$(_default_engine)"
   command -v "$engine" >/dev/null || die "$engine CLI not on PATH"
+  [ -n "$model" ] || model="$(_current_model "$engine")"
 
   [ "$engine" != claude ] || label="$(_next_label "$label" "$cwd")"
 
@@ -170,9 +184,8 @@ detach — open a new interactive agent-CLI window seeded with a task
        Open a new terminal window running an interactive agent session (claude or opencode)
        seeded with <prompt>. --label is required (titles the session for Claude Code's
        /resume; OpenCode has no titled resume — use `opencode --continue`). --engine
-       defaults to $DETACH_ENGINE, else the first of claude/opencode on PATH. --cwd defaults
-       to the current dir. --model is passed through verbatim (Claude: "sonnet"; OpenCode:
-       "provider/model"). The calling agent hands off to the tab; it does not drive it.
+       defaults to the calling harness, else $DETACH_ENGINE, else the first of claude/opencode on PATH. --cwd defaults
+       to the current dir. --model defaults to the calling session's model; passed through verbatim. The calling agent hands off to the tab; it does not drive it.
 USAGE
     ;;
   *) die "unknown command '$cmd' (try: detach help)";;

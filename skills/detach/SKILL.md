@@ -69,16 +69,17 @@ running the chosen engine seeded with the prompt:
   A label ending in `-N` continues its series: `detach.sh` reads existing Claude session titles
   in that dir and bumps to the highest number + 1 (`auth-1` again → `auth-2`). No suffix, no
   numbering; OpenCode has no titles, so never numbers.
-- **`--engine`** picks the CLI. Defaults to `$DETACH_ENGINE`, else the first of
-  `claude`/`opencode` found on PATH.
+- **`--engine`** picks the CLI. Defaults to the harness currently in use (`$CLAUDECODE` /
+  `$OPENCODE`), else `$DETACH_ENGINE`, else the first of `claude`/`opencode` found on PATH.
 - **`--cwd`** defaults to the current dir; the session opens in that dir exactly as given.
   Note the consequence: a resume picker only lists a session from the dir it was launched in,
   so a session started inside a `/leaf` worktree is resumable only from that worktree — and
   disappears once `lgtm` deletes it. Launch from where you want it to live (and resume from):
   for a leaf, that is the base repo, and the detached agent creates the worktree itself
   (see *Detaching a `/leaf`*).
-- **`--model`** overrides the model, passed through verbatim (Claude: `sonnet`; OpenCode:
-  `provider/model`).
+- **`--model`** defaults to the model the calling session is using (read from its Claude Code
+  transcript; OpenCode exposes none, so its own default applies). Pass it only to override,
+  verbatim (Claude: `sonnet`; OpenCode: `provider/model`).
 
 After it runs, tell the human a new window is open and how to resume it if they close it
 (`/resume` on Claude Code; `opencode --continue` on OpenCode).
