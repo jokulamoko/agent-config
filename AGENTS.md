@@ -44,11 +44,6 @@ simplicity.
   intervention.
 - When intervention is required, as is inevitable for some program, it should be incredibly focused.
 
-## Time vs Compute
-
-Local device compute is cheap. Human time is expensive - when in conflict, always prioritise human
-time.
-
 # Development Standards
 
 - I think programmers are far too fast to over-abstract. I hate over-abstraction. Instead, let
