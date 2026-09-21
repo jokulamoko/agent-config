@@ -87,8 +87,8 @@ merges, so that if CI fails the worktree is still intact, with its database live
    library doc).
 5. Watch CI: `gh pr checks <branch> --watch` — it blocks until checks settle and exits non-zero
    on failure. If it fails, fix in the worktree (still intact), push again, and re-watch.
-6. Once green, squash-merge on the server: `gh pr merge <branch> --squash --delete-branch` with a
-   summarising `--subject`/`--body`. This marks the PR **merged** and deletes the remote branch.
+6. Once green, squash-merge on the server: `gh pr merge <branch> --squash` with a summarising
+   `--subject`/`--body`. This marks the PR **merged**.
 7. Sync local main: `git switch main && git pull --ff-only`. It fast-forwards cleanly because you
    rebased in step 1 — origin/main is just local main plus the one squash commit. If `--ff-only`
    refuses, someone else advanced main: investigate, don't paper over it.

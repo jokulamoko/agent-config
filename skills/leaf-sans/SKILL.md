@@ -106,6 +106,8 @@ Note that sometimes you may depend on local packages outside of the repo you're 
 10. After actioning the contact and reflection findings, write a self-criticism of the work — in your final message, not a file:
    - Code form and structure (are the patterns clean, maintainable and efficient?)
    - Solution — is it a patch, or a direct, comprehensive fix?
+   - Silent failure — name the path that fails silently before landing (a swallowed exception, a
+     cache key missing an input, a converge path nothing runs), and what now makes it loud.
 
 ## Completion
 

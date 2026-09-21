@@ -1,21 +1,37 @@
 # agent-config
 
-Portable Agent harness configuration, synced across devices. Cloned into `~/.claude`.
+Portable, agent-agnostic harness configuration, synced across devices. Cloned into `~/.agents`.
 
-Only the config is tracked — `.gitignore` denies everything and allow-lists back in. Runtime
-state (sessions, history, caches, projects) stays local.
+Nothing here is tied to a single agent or a single project. Each agent gets the config linked into
+wherever it expects to read it — `install-claude.sh` does that for Claude Code. Runtime state
+(sessions, history, caches, projects) and per-agent settings stay in that agent's own directory and
+are never tracked here.
 
 ## Contents
 
 | Path | What |
 |---|---|
-| `CLAUDE.md` | Global instructions: principles, development standards, conversation style. |
-| `settings.json` | Permissions, model, hooks. Allow rules are generic; project-specific ones live in that project's `.claude/settings.json`. |
+| `AGENTS.md` | Global instructions: principles, development standards, conversation style. |
 | `skills/` | The skills. `SKILL.md` per skill, plus any scripts it owns. |
+| `bin/` | Shared scripts that belong to no single skill. |
+| `install-claude.sh` | Links `skills/` and `AGENTS.md` into `~/.claude`. |
 
-Nothing here is project-specific. A skill that needs to know something about a particular repo
-declares an extension point instead — `/leaf` and `/lgtm` read `.claude/leaf.md` from the repo
-they are run in.
+A skill that needs to know something about a particular repo declares an extension point instead —
+`/leaf` and `/lgtm` read `.claude/leaf.md` from the repo they are run in.
+
+## Installing for Claude Code
+
+```sh
+~/.agents/install-claude.sh            # --dry-run to preview
+```
+
+Idempotent. Every `skills/<name>` becomes a symlink at `~/.claude/skills/<name>`, and `AGENTS.md`
+becomes `~/.claude/CLAUDE.md`. Re-run after adding, renaming, or deleting a skill — stale links into
+this repo are pruned. It refuses to replace a real file or directory, so anything Claude-only that
+already lives in `~/.claude` — `settings.json`, `skills/synced/` — is left untouched.
+
+Skills reference their own scripts as `~/.claude/skills/<name>/<script>`, which resolves through the
+symlink, so permission rules and hook commands keep working unchanged.
 
 ## The leaf workflow
 
@@ -33,15 +49,10 @@ assuming any particular database. A project without one skips those steps.
 
 ## On a new device
 
-`~/.claude` already exists and holds local state, so it cannot be cloned into directly:
-
 ```sh
-cd ~/.claude
-git init && git remote add origin git@github.com:jokulamoko/agent-config.git
-git fetch origin && git checkout -f main
+git clone git@github.com:jokulamoko/agent-config.git ~/.agents
+~/.agents/install-claude.sh
 ```
-
-This overwrites the tracked files and leaves everything else alone.
 
 Git hooks are not cloned. To keep branches local and only ever push `main`, reinstall the
 `pre-push` guard in `.git/hooks/` on each machine.

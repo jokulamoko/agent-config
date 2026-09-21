@@ -1,6 +1,6 @@
 ---
 name: leaf
-description: Create an isolated worktree branch with its own database branch, investigate thoroughly, implement changes, document in .library/forks/, and push — cut from any named base branch, defaulting to local main, or off the current worktree when run from inside one. Use when starting a bug fix, feature, or refactor that needs isolation, including slicing a /decompose unit off a larger feature worktree.
+description: Create an isolated worktree branch with its own database branch, investigate thoroughly, implement changes, and document in .library/forks/ — cut from any named base branch, defaulting to local main, or off the current worktree when run from inside one. Use when starting a bug fix, feature, or refactor that needs isolation, including slicing a /decompose unit off a larger feature worktree.
 ---
 
 # Leaf
@@ -111,6 +111,8 @@ Note that sometimes you may depend on local packages outside of the repo you're 
 11. After actioning the contact, vocab, and reflection findings, write a self-criticism of the work:
    - Code form and structure (are the patterns clean, maintainable and efficient?)
    - Solution — is it a patch, or a direct, comprehensive fix?
+   - Silent failure — name the path that fails silently before landing (a swallowed exception, a
+     cache key missing an input, a converge path nothing runs), and what now makes it loud.
 
 ## Completion
 
@@ -123,7 +125,10 @@ Note that sometimes you may depend on local packages outside of the repo you're 
     - **Implementation:** key files/functions changed and how — no excessive code (the user can see the diff)
     - **Self-criticism:** include a section critiquing the work
     - **Test results:** what was run, what passed. How do you know the problem is fixed?
-14. Commit all changes (including the library doc) and push the branch.
+   To get index, do a count of existing entries. Thats your index number. Always ensure when rebasing, you look to see if you
+   need to increment.
+14. Commit all changes (including the library doc). Do not push — `lgtm` pushes when the leaf
+    lands (locally, only when the base is `main`; in PR mode, explicitly, to open the PR).
 15. Your final message — presented while awaiting the user's review — takes these headings, in this order:
 
     ```

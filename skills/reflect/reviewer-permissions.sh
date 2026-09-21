@@ -13,7 +13,7 @@
 # Created 2026-07-13. Consumers: ./eval.sh, ./prove-permissions.sh
 set -euo pipefail
 
-exec python3 "$HOME/.claude/bin/derive-opencode-permissions.py" \
+exec python3 "$(dirname "${BASH_SOURCE[0]}")/../../bin/derive-opencode-permissions.py" \
   --deny-edits \
   --allow-read '**/.env.example' \
   --allow-read '**/.env.*.example'

@@ -87,6 +87,10 @@ Not done until, from the jobs repo:
    negative that sends you chasing a permissions problem you do not have. Exercise the path where
    the *command* fails, not an early-exit guard — that is the branch that matters.
 
+## Design principles
+
+- If a Neon DB requires calling, design the solution to minimise DB calls to only those necessary.
+
 ## When launchd is the wrong home
 
 Agents run only while you are logged in and the system is awake. Anything that must survive a shut

@@ -1,21 +1,2 @@
-*
-
-!.gitignore
-!README.md
-!CLAUDE.md
-
-!hooks/
-!hooks/**
-
-!skills/
-!skills/**
-
-!bin/
-!bin/**
-
-node_modules
-
-skills/console/accents.json
-
-# macos
-*.DS_STORE
+.DS_Store
+node_modules/

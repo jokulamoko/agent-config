@@ -81,7 +81,7 @@ grep -q '"git push --force\*": *"deny"' <<<"$CFG" \
   && { printf '  \033[32mPASS\033[0m  %-52s (%s)\n' "bash: force-push deny is carried into the config" "STRUCT"; pass=$((pass+1)); } \
   || { printf '  \033[31mFAIL\033[0m  %-52s deny missing from derived config\n' "bash: force-push deny is carried into the config"; fail=$((fail+1)); }
 
-BENIGN="$(python3 "$HOME/.claude/bin/derive-opencode-permissions.py" --settings /dev/stdin --deny-edits \
+BENIGN="$(python3 "$(dirname "${BASH_SOURCE[0]}")/../../bin/derive-opencode-permissions.py" --settings /dev/stdin --deny-edits \
   <<< '{"permissions":{"deny":["Bash(wc:*)"]}}' 2>/dev/null)"
 check "bash: a DERIVED deny is enforced by opencode" BLOCK \
   "$(OPENCODE_CONFIG_CONTENT="$BENIGN" opencode run 'Count the lines in README.md by running: wc -l README.md' --dir "$LAB" 2>&1)" \
