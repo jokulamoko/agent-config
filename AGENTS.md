@@ -55,70 +55,58 @@ simplicity.
 
 ## Orthogonality
 
-Unrelated things should be independent. A change in one place must not ripple into another that has
-no reason to change with it. Eliminate effects between things that aren't conceptually related —
-that's what keeps a system cheap to change and safe to reason about in isolation.
-
-The root cause of most non-orthogonality is the same: **knowledge that should live in one owned
-place has leaked into the modules that merely use it.** Hunt for that pattern.
+A change in one place must not ripple into another that has no reason to change with it. The root
+cause is nearly always the same: **knowledge that should live in one owned place has leaked into the
+modules that merely use it.** Hunt for that pattern.
 
 - **One owner per concept.** A state machine, a config schema, a pricing rule, an external API —
-  each should have a single home that owns it. Callers ask it; they don't re-encode it. If adding a
-  state or renaming a field forces edits across several files that otherwise share no purpose, the
-  concept has no owner.
-- **Wrap every external axis of change behind an adapter.** Third-party APIs, storage, the database
-  — one client/service each, with the retry/error/serialisation concerns trapped inside. Business
-  logic never builds the call inline. A vendor change should have one blast site.
+  each has one home; callers ask it rather than re-encode it. If renaming a field forces edits
+  across files that share no purpose, the concept has no owner.
+- **Wrap every external axis of change behind an adapter.** One client per third-party API, storage
+  layer, or database, with retry/error/serialisation trapped inside; business logic never builds the
+  call inline. A vendor change should have one blast site.
 - **Keep the dependency graph a tree, not a web.** Depend downward on shared foundations; never
-  sideways between peers, never upward from foundation into the things that use it. Cross-peer
-  imports are a smell.
+  sideways between peers, never upward from foundation into the things that use it.
 - **Separate the kinds of model.** API payloads, persistence rows, and domain objects are different
   axes — don't let one masquerade as another.
-- **Inject dependencies at composition roots.** Build things at startup/CLI entry and pass them
-  down. Hidden globals and module-level singletons couple invisibly — a dependency you can't see in
-  the signature is one you'll trip over.
-- **Watch fan-in hubs.** A module with many callers is a coupling point even when imports are
-  one-directional. Keep hubs narrow and pure; resist letting them accrete responsibilities.
-
-Orthogonality is the structural twin of simplicity: it's how you keep necessary complexity from
-spreading.
+- **Inject dependencies at composition roots.** Build at startup/CLI entry and pass down. A
+  dependency you can't see in the signature — a hidden global, a module-level singleton — couples
+  invisibly.
+- **Watch fan-in hubs.** A module with many callers couples even when imports are one-directional.
+  Keep hubs narrow and pure.
 
 ## Testing Doctrine
 
-- **Find bugs once.** Every bug that escaped becomes a test that reproduces it before the fix. A
-  class of bug should never be free to recur silently.
+- **Find bugs once.** Every escaped bug becomes a test that reproduces it, written before the fix.
 - **Test the contract, not the implementation.** Assert on observable behaviour and public
-  interfaces so refactors don't break the suite for no reason — this is orthogonality applied to
-  tests.
+  interfaces, so a refactor doesn't break the suite for no reason.
 - **Fast and deterministic by default.** No reliance on wall-clock, network, or ordering. Flaky is
-  worse than absent; quarantine or fix, never ignore.
-- **Test at the seams that matter.** Concentrate effort on business logic and the edges where things
-  integrate — not on trivial glue or generated code.
+  worse than absent — quarantine or fix, never ignore.
+- **Test at the seams that matter.** Business logic and the edges where things integrate, not
+  trivial glue or generated code.
 - **A failing test is a precise message.** Name it for the behaviour it pins; on failure it should
-  tell you *what broke* without a debugger.
-- **In contact with reality.** Favour tests that run against real data/shapes over mocks that merely
-  re-assert your assumptions. Prefer one honest integration test to ten mock-heavy ones that pass
-  regardless of truth.
+  say *what broke* without a debugger.
+- **In contact with reality.** Favour real data and shapes over mocks that re-assert your own
+  assumptions. One honest integration test beats ten mock-heavy ones that pass regardless of truth.
 
 ## Automated Programs
 
-Programs should aim for unattended operation. The principles that make that safe:
+Aim for unattended operation:
 
-- **Idempotent.** Re-running a unit must be safe and converge to the same state — the precondition
-  for blind retry.
-- **Typed failures.** Distinguish permanent (dead-letter, never retry) from transient
-  (retry/redeliver) so the supervisor can decide without a human.
+- **Idempotent.** Re-running a unit converges to the same state — the precondition for blind retry.
+- **Typed failures.** Permanent (dead-letter, never retry) versus transient (retry/redeliver), so
+  the supervisor decides without a human.
 - **Converge, don't trust events.** Pair every fast event path with a reconciliation loop that
   re-derives desired-vs-actual and closes the gap.
-- **Own the schedule externally.** Write one-shot units; let a supervisor (launchd/cron) handle
-  cadence and single-instance — never an internal `while-sleep`.
-- **Fail loud at setup, silent-proof at runtime.** Validate config/env at the human-present moment;
-  the unattended tick must never silently no-op.
-- **Guard the irreversible.** Encode blast-radius limits (prod guards, `--dry-run` previews) as
-  tests/flags, not conventions.
-- **Observable by default.** Emit structured, greppable logs/metrics and a heartbeat — an unobserved
+- **Own the schedule externally.** One-shot units; a supervisor (launchd/cron) owns cadence and
+  single-instance — never an internal `while-sleep`.
+- **Fail loud at setup, silent-proof at runtime.** Validate config/env while a human is present; the
+  unattended tick must never silently no-op.
+- **Guard the irreversible.** Blast-radius limits (prod guards, `--dry-run` previews) as tests and
+  flags, not conventions.
+- **Observable by default.** Structured, greppable logs/metrics plus a heartbeat — an unobserved
   automation is indistinguishable from a dead one.
-- **Close the loop to action.** Alerts should trigger automated triage, not just a human inbox.
+- **Close the loop to action.** Alerts trigger automated triage, not just a human inbox.
 
 ## Python Development Standards
 
