@@ -2,10 +2,8 @@
 
 Portable, agent-agnostic harness configuration, synced across devices. Cloned into `~/.agents`.
 
-Nothing here is tied to a single agent or a single project. Each agent gets the config linked into
-wherever it expects to read it — `install-claude.sh` does that for Claude Code. Runtime state
-(sessions, history, caches, projects) and per-agent settings stay in that agent's own directory and
-are never tracked here.
+Each agent gets the config linked into wherever it expects to read it — `install-claude.sh` does 
+that for Claude Code, given it doesn't read `.agents/skills`. 
 
 ## Contents
 

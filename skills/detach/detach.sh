@@ -97,7 +97,7 @@ _engine_cmd() {  # engine label model prompt
   local engine="$1" label="$2" model="$3" prompt="$4" cmd
   case "$engine" in
     claude)
-      cmd="$(printf 'claude --name %q' "[detached] $label")"
+      cmd="$(printf 'claude --name %q' "$label")"
       [ -n "$model" ] && cmd+="$(printf ' --model %q' "$model")"
       cmd+="$(printf ' %q' "$prompt")"
       ;;
@@ -111,6 +111,23 @@ _engine_cmd() {  # engine label model prompt
     *) die "unknown engine '$engine' (want: claude|opencode)";;
   esac
   printf '%s' "$cmd"
+}
+
+# Claude Code keeps each session title in <projects>/<cwd with / and . as ->/<session>/custom-title.json.
+_claude_titles() {  # cwd
+  local dir="$HOME/.claude/projects/$(printf '%s' "$1" | tr '/.' '--')"
+  cat "$dir"/*/custom-title.json 2>/dev/null | grep -oE '"customTitle":"[^"]*"' | sed 's/^"customTitle":"//; s/"$//'
+}
+
+# A label ending in -N continues its series: if <prefix>-N or higher is already a session
+# title in this dir, take the highest + 1. Labels without a numeric suffix pass through.
+_next_label() {  # label cwd
+  local label="$1" prefix n max
+  [[ "$label" =~ ^(.+)-([0-9]+)$ ]] || { printf '%s' "$label"; return; }
+  prefix="${BASH_REMATCH[1]}"; n=$((10#${BASH_REMATCH[2]}))
+  max="$(_claude_titles "$2" | awk -v p="$prefix-" 'index($0,p)==1 { s=substr($0,length(p)+1); if (s ~ /^[0-9]+$/ && s+0>m) m=s+0 } END { print m+0 }')"
+  [ "$max" -lt "$n" ] || n=$((max + 1))
+  printf '%s-%s' "$prefix" "$n"
 }
 
 sub_new() {
@@ -133,9 +150,11 @@ sub_new() {
   [ -n "$engine" ] || engine="$(_default_engine)"
   command -v "$engine" >/dev/null || die "$engine CLI not on PATH"
 
+  [ "$engine" != claude ] || label="$(_next_label "$label" "$cwd")"
+
   local cmd; cmd="$(_engine_cmd "$engine" "$label" "$model" "${rest[*]}")"
   _open_window "$cwd" "$cmd"
-  printf '— detach: opened a new %s tab — "[detached] %s"\n    cwd: %s\n' "$engine" "$label" "$cwd" >&2
+  printf '— detach: opened a new %s tab — "%s"\n    cwd: %s\n' "$engine" "$label" "$cwd" >&2
   [ "$engine" = claude ] && printf '    Also listed in /resume under that name.\n' >&2 || \
     printf '    Resume it with `opencode --continue` from that dir (OpenCode has no titled resume).\n' >&2
 }

@@ -6,7 +6,7 @@ description: Write a handoff doc, then spin off a parallel interactive agent ses
 # detach
 
 `/detach` opens a **new terminal tab running a fresh interactive agent session** (`claude`
-or `opencode`), pre-seeded with a task and labelled `[detached] <label>`. You seed it and
+or `opencode`), pre-seeded with a task and labelled `<label>`. You seed it and
 hand it off — the tab is the single driver of that session; you do not drive it yourself.
 
 ## Launch from the root repo, never a worktree
@@ -44,7 +44,7 @@ Because it's an ordinary interactive session (not a headless run), it:
 
 1. **Opens immediately** in its own tab, with the task already seeded as the first prompt.
 2. **Persists on disk** and survives this conversation.
-3. **Is resumable natively** — Claude Code shows it in `/resume` titled `[detached] <label>`
+3. **Is resumable natively** — Claude Code shows it in `/resume` titled `<label>`
    (set via `claude --name`); OpenCode has no titled resume, so resume it with
    `opencode --continue` from the same dir. No log-rewriting hacks, no promotion step.
 
@@ -53,19 +53,22 @@ The engine is `./detach.sh`.
 ## Usage
 
 ```
-~/.claude/skills/detach/detach.sh new "<task prompt>" --label "<short title>" \
+~/.agents/skills/detach/detach.sh new "<task prompt>" --label "<short title>" \
     [--engine claude|opencode] [--cwd DIR] [--model M]
 ```
 
 This writes a launcher and opens a new tab (iTerm; Terminal.app falls back to a new window)
 running the chosen engine seeded with the prompt:
-- `claude`   → `claude --name "[detached] <label>" [--model M] "<task prompt>"`
+- `claude`   → `claude --name "<label>" [--model M] "<task prompt>"`
 - `opencode` → `opencode --prompt "<task prompt>" [--model M]`
 
 - **`--label` is required.** It titles the session where the engine supports one (Claude
-  Code's prompt box and `/resume`, shown as `[detached] <label>`). Make it short and
+  Code's prompt box and `/resume`, shown as `<label>`). Make it short and
   specific — what this stream *is* at a glance: `--label "migrate auth to OAuth"`, not
   `--label "task"`.
+  A label ending in `-N` continues its series: `detach.sh` reads existing Claude session titles
+  in that dir and bumps to the highest number + 1 (`auth-1` again → `auth-2`). No suffix, no
+  numbering; OpenCode has no titles, so never numbers.
 - **`--engine`** picks the CLI. Defaults to `$DETACH_ENGINE`, else the first of
   `claude`/`opencode` found on PATH.
 - **`--cwd`** defaults to the current dir; the session opens in that dir exactly as given.
@@ -97,7 +100,7 @@ bypassing the rails.
 
 ## Ergonomics
 
-Put it on PATH: `ln -s ~/.claude/skills/detach/detach.sh ~/.local/bin/detach`, then
+Put it on PATH: `ln -s ~/.agents/skills/detach/detach.sh ~/.local/bin/detach`, then
 `detach new "..." --label "..."`.
 
 ## Limits
