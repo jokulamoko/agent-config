@@ -127,9 +127,14 @@ Note that sometimes you may depend on local packages outside of the repo you're 
     - **Test results:** what was run, what passed. How do you know the problem is fixed?
    To get index, do a count of existing entries. Thats your index number. Always ensure when rebasing, you look to see if you
    need to increment.
-14. Commit all changes (including the library doc). Do not push — `lgtm` pushes when the leaf
+14. **Triage any spike files** (`.spikes/` or `.cache/`, per the `spike` skill's convention) touched
+    during this leaf. The bar is high: is this script worth maintaining? Default to delete — anything
+    easily replicated from the fork doc just written, or from another existing report, has no reason
+    to survive. Keep only what earns its keep as a script, not as a memory aid; the finding belongs in
+    the fork doc either way.
+15. Commit all changes (including the library doc). Do not push — `lgtm` pushes when the leaf
     lands (locally, only when the base is `main`; in PR mode, explicitly, to open the PR).
-15. Your final message — presented while awaiting the user's review — takes these headings, in this order:
+16. Your final message — presented while awaiting the user's review — takes these headings, in this order:
 
     ```
     # Motivation
@@ -174,5 +179,5 @@ Never rebase on `origin/...`.
 
 ## Landing
 
-Do not land the leaf yourself. Stop at step 15 and wait — how a leaf lands varies by
+Do not land the leaf yourself. Stop at step 16 and wait — how a leaf lands varies by
 environment, and I will tell you which flow to run when I've reviewed the work.
